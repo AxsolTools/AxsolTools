@@ -9,7 +9,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16.0.7-black)](https://nextjs.org/)
 [![Solana](https://img.shields.io/badge/Solana-Mainnet-14F195)](https://solana.com/)
 
-[Website](https://axsol.tools) · [Twitter](https://x.com/Axsoltools) · [Documentation](#documentation)
+[Website](https://www.axsol.site/) · [Twitter](https://x.com/Axsoltools) · [Documentation](#documentation)
 
 </div>
 
