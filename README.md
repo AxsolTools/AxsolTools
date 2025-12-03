@@ -58,103 +58,74 @@ AXSOL is a professional-grade Solana toolkit that provides validator-level tradi
 
 ### System Overview
 
-\`\`\`
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              AXSOL PLATFORM                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐         │
-│  │   AI Money      │    │  Auto FrontRun  │    │  Utility Tools  │         │
-│  │                 │    │                 │    │                 │         │
-│  │  • Pool Mgmt    │    │  • Mempool Scan │    │  • NFT Burner   │         │
-│  │  • AI Engine    │    │  • Pattern Det. │    │  • Token Burner │         │
-│  │  • Profit Dist  │    │  • Auto Execute │    │  • Multi Sender │         │
-│  └────────┬────────┘    └────────┬────────┘    │  • Create Token │         │
-│           │                      │             │  • And More...  │         │
-│           │                      │             └────────┬────────┘         │
-│           └──────────────────────┼──────────────────────┘                  │
-│                                  │                                          │
-│  ┌───────────────────────────────┴───────────────────────────────────────┐ │
-│  │                        CORE INFRASTRUCTURE                             │ │
-│  │                                                                        │ │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                │ │
-│  │  │ RPC Manager  │  │ Wallet Adapt │  │ TX Logger    │                │ │
-│  │  │              │  │              │  │              │                │ │
-│  │  │ • Rotation   │  │ • Phantom    │  │ • Real-time  │                │ │
-│  │  │ • Failover   │  │ • Solflare   │  │ • Export CSV │                │ │
-│  │  │ • Health     │  │ • Backpack   │  │ • History    │                │ │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘                │ │
-│  └───────────────────────────────────────────────────────────────────────┘ │
-│                                  │                                          │
-└──────────────────────────────────┼──────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          SOLANA BLOCKCHAIN                                   │
-│                                                                              │
-│    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                   │
-│    │  Mainnet    │    │  Validator  │    │   Mempool   │                   │
-│    │   RPCs      │    │    Node     │    │   (gRPC)    │                   │
-│    └─────────────┘    └─────────────┘    └─────────────┘                   │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-\`\`\`
+```mermaid
+graph TB
+    subgraph Platform["AXSOL Platform"]
+        AI[AI Money<br/>• Pool Management<br/>• AI Engine<br/>• Profit Distribution]
+        FrontRun[Auto FrontRun<br/>• Mempool Scan<br/>• Pattern Detection<br/>• Auto Execute]
+        Tools[Utility Tools<br/>• NFT Burner<br/>• Token Burner<br/>• Multi Sender<br/>• Create Token<br/>• And More...]
+        
+        subgraph Infrastructure["Core Infrastructure"]
+            RPC[RPC Manager<br/>• Rotation<br/>• Failover<br/>• Health Checks]
+            Wallet[Wallet Adapter<br/>• Phantom<br/>• Solflare<br/>• Backpack]
+            Logger[TX Logger<br/>• Real-time<br/>• Export CSV<br/>• History]
+        end
+        
+        AI --> Infrastructure
+        FrontRun --> Infrastructure
+        Tools --> Infrastructure
+    end
+    
+    subgraph Solana["Solana Blockchain"]
+        Mainnet[Mainnet RPCs]
+        Validator[Validator Node]
+        Mempool[Mempool<br/>gRPC]
+    end
+    
+    Infrastructure --> Solana
+```
 
 ### AI Money Flow
 
-\`\`\`
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  Depositors  │────▶│  AXSOL Pool  │────▶│  AI Engine   │────▶│  Validator   │
-│              │     │              │     │              │     │    Node      │
-│  Deposit     │     │  Aggregate   │     │  Scan        │     │  Execute     │
-│  AXSOL       │     │  Liquidity   │     │  Mempool     │     │  Trades      │
-└──────────────┘     └──────────────┘     └──────────────┘     └──────┬───────┘
-       ▲                                                               │
-       │                                                               │
-       │                    ┌──────────────┐                          │
-       │                    │   Profits    │                          │
-       └────────────────────│  Distributed │◀─────────────────────────┘
-                            │  Proportion- │
-                            │    ally      │
-                            └──────────────┘
-\`\`\`
+```mermaid
+sequenceDiagram
+    participant D as Depositors
+    participant P as AXSOL Pool
+    participant AI as AI Engine
+    participant V as Validator Node
+    participant M as Mempool
+    
+    D->>P: Deposit AXSOL
+    P->>P: Aggregate Liquidity
+    P->>AI: Trigger Analysis
+    AI->>M: Scan Mempool
+    M-->>AI: Return Opportunities
+    AI->>V: Execute Trades
+    V-->>AI: Trade Confirmed
+    AI->>P: Distribute Profits
+    P->>D: Proportional Returns
+```
 
 ### Auto FrontRun Detection Flow
 
-\`\`\`
-                    ┌─────────────────────────────────────────┐
-                    │           SOLANA MEMPOOL                 │
-                    │                                         │
-                    │   [Bundler TX] [Bundler TX] [Normal TX] │
-                    └──────────────────┬──────────────────────┘
-                                       │
-                                       │ gRPC Stream (~50ms)
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        AXSOL VALIDATOR NODE                                  │
-│  ┌─────────────────────┐         ┌─────────────────────┐                   │
-│  │  Pattern Detection  │────────▶│   Auto Executor     │                   │
-│  │                     │         │                     │                   │
-│  │  • Cluster ID       │         │  • Build TX         │                   │
-│  │  • Timing Analysis  │         │  • Sign & Send      │                   │
-│  │  • Wallet Mapping   │         │  • Confirm          │                   │
-│  └─────────────────────┘         └──────────┬──────────┘                   │
-│                                              │                              │
-└──────────────────────────────────────────────┼──────────────────────────────┘
-                                               │
-                        T = 0ms                │
-                        AXSOL Executes         ▼
-                    ┌──────────────────────────────────────┐
-                    │            DEX / MARKET              │
-                    │                                      │
-                    │   AXSOL Trade ✓    Bundler Trade ✗   │
-                    │   (Executed)       (Worse Price)     │
-                    │                                      │
-                    └──────────────────────────────────────┘
-                                               ▲
-                        T = 150ms              │
-                        Bundlers Execute ──────┘
-\`\`\`
+```mermaid
+sequenceDiagram
+    participant M as Solana Mempool
+    participant V as AXSOL Validator Node
+    participant PD as Pattern Detection
+    participant AE as Auto Executor
+    participant DEX as DEX/Market
+    
+    M->>V: gRPC Stream (~50ms)<br/>[Bundler TX] [Bundler TX] [Normal TX]
+    V->>PD: Analyze Transactions
+    PD->>PD: • Cluster ID<br/>• Timing Analysis<br/>• Wallet Mapping
+    PD->>AE: Pattern Detected
+    Note over AE: T = 0ms<br/>AXSOL Executes
+    AE->>DEX: Build & Send TX
+    DEX-->>AE: Trade Executed ✓
+    Note over M: T = 150ms<br/>Bundlers Execute
+    M->>DEX: Bundler Trades ✗<br/>(Worse Price)
+```
 
 ---
 
@@ -253,40 +224,40 @@ Real-time bundler detection and counter-execution system.
 
 1. **Clone the repository**
 
-\`\`\`bash
+```bash
 git clone https://github.com/axsoltools/axsol-toolkit.git
 cd axsol-toolkit
-\`\`\`
+```
 
 2. **Install dependencies**
 
-\`\`\`bash
+```bash
 pnpm install
-\`\`\`
+```
 
 Or with npm:
 
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 
 Or with yarn:
 
-\`\`\`bash
+```bash
 yarn install
-\`\`\`
+```
 
 ### Environment Variables
 
 Create a `.env.local` file in the root directory:
 
-\`\`\`env
+```env
 # Optional: Custom RPC endpoints (comma-separated)
 NEXT_PUBLIC_CUSTOM_RPC_ENDPOINTS=https://your-rpc.com
 
 # Optional: Arweave/Irys configuration
 ARWEAVE_WALLET_KEY=your-arweave-wallet-json
-\`\`\`
+```
 
 > **Note:** The application works without any environment variables by using public RPC endpoints with automatic rotation.
 
@@ -294,31 +265,31 @@ ARWEAVE_WALLET_KEY=your-arweave-wallet-json
 
 **Development mode:**
 
-\`\`\`bash
+```bash
 pnpm dev
-\`\`\`
+```
 
 The application will be available at `http://localhost:3000`
 
 **With turbopack (faster):**
 
-\`\`\`bash
+```bash
 pnpm dev --turbo
-\`\`\`
+```
 
 ### Building for Production
 
 1. **Build the application**
 
-\`\`\`bash
+```bash
 pnpm build
-\`\`\`
+```
 
 2. **Start production server**
 
-\`\`\`bash
+```bash
 pnpm start
-\`\`\`
+```
 
 ### Deployment
 
@@ -328,7 +299,7 @@ pnpm start
 
 **Docker:**
 
-\`\`\`dockerfile
+```dockerfile
 FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
@@ -344,13 +315,13 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 CMD ["node", "server.js"]
-\`\`\`
+```
 
 ---
 
 ## Project Structure
 
-\`\`\`
+```
 axsol-toolkit/
 ├── app/                          # Next.js App Router
 │   ├── api/                      # API routes
@@ -408,7 +379,7 @@ axsol-toolkit/
 ├── tsconfig.json                 # TypeScript configuration
 ├── next.config.mjs               # Next.js configuration
 └── README.md                     # This file
-\`\`\`
+```
 
 ---
 
@@ -418,7 +389,7 @@ AXSOL uses automatic RPC rotation with health checks to ensure reliable connecti
 
 ### Default RPC Endpoints
 
-\`\`\`typescript
+```typescript
 const RPC_ENDPOINTS = [
   'https://api.mainnet-beta.solana.com',
   'https://solana-mainnet.g.alchemy.com/v2/demo',
@@ -426,7 +397,7 @@ const RPC_ENDPOINTS = [
   'https://solana.getblock.io/mainnet',
   'https://solana-api.projectserum.com',
 ];
-\`\`\`
+```
 
 ### RPC Manager Features
 
@@ -441,9 +412,9 @@ const RPC_ENDPOINTS = [
 
 To use your own RPC endpoint(s), set the environment variable:
 
-\`\`\`env
+```env
 NEXT_PUBLIC_CUSTOM_RPC_ENDPOINTS=https://your-premium-rpc.com,https://backup-rpc.com
-\`\`\`
+```
 
 ---
 
@@ -516,11 +487,11 @@ Send tokens to multiple addresses in one transaction.
 4. Click "Send Tokens"
 
 **CSV Format:**
-\`\`\`csv
+```csv
 address,amount
 RecipientAddress1,100
 RecipientAddress2,50
-\`\`\`
+```
 
 ---
 
@@ -601,22 +572,22 @@ Send on-chain messages to NFT or domain owners.
 Upload files to Arweave network.
 
 **Request:**
-\`\`\`typescript
+```typescript
 // FormData
 {
   file: File,           // File to upload
   tags?: string         // JSON stringified tags array
 }
-\`\`\`
+```
 
 **Response:**
-\`\`\`typescript
+```typescript
 {
   success: boolean,
   id: string,           // Arweave transaction ID
   url: string           // Permanent Arweave URL
 }
-\`\`\`
+```
 
 ---
 
@@ -629,33 +600,33 @@ We welcome contributions from the community.
 1. **Fork the repository**
 
 2. **Create a feature branch**
-\`\`\`bash
+```bash
 git checkout -b feature/your-feature-name
-\`\`\`
+```
 
 3. **Make your changes**
 
 4. **Run linting**
-\`\`\`bash
+```bash
 pnpm lint
-\`\`\`
+```
 
 5. **Test locally**
-\`\`\`bash
+```bash
 pnpm dev
-\`\`\`
+```
 
 6. **Commit with conventional commits**
-\`\`\`bash
+```bash
 git commit -m "feat: add new feature"
 git commit -m "fix: resolve issue with X"
 git commit -m "docs: update README"
-\`\`\`
+```
 
 7. **Push and create PR**
-\`\`\`bash
+```bash
 git push origin feature/your-feature-name
-\`\`\`
+```
 
 ### Code Style
 
@@ -693,7 +664,7 @@ If you discover a security vulnerability, please email security@axsol.tools or D
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-\`\`\`
+```
 MIT License
 
 Copyright (c) 2024 AXSOL
@@ -715,7 +686,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-\`\`\`
+```
 
 ---
 
